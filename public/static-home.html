@@ -49,8 +49,25 @@
     <meta name="color-scheme" content="light dark"/>
 
     <style>
+        :root {
+            //--color-bg: rgb(231, 232, 235);
+            --color-bg: #E6E8EB;
+            --color-card-bg: rgb(247, 247, 247);
+            --color-card-text: black;
+            --color-line: #cecece;
+            --color-h2: rgb(91, 91, 91);
+        }
+
+        html.dark {
+            --color-bg: #0E1217;
+            --color-card-bg: rgb(30, 31, 34);
+            --color-card-text: #c6c6c6;
+            --color-line: #333333;
+            --color-h2: rgb(151, 151, 151);
+        }
+
         body {
-            background: rgb(231, 232, 235);
+            background: var(--color-bg);
         }
 
         h1 {
@@ -67,7 +84,7 @@
         h2 {
             font-size: 1.4rem !important;
             font-weight: normal !important;
-            color: rgb(91, 91, 91);
+            color: var(--color-h2);
             margin: 0;
         }
 
@@ -82,24 +99,25 @@
             gap: 0.6rem;
             margin-bottom: 0;
             width: 25%;
-            background: rgb(247, 247, 247);
+            background: var(--color-card-bg);
+            color: var(--color-card-text);
+        }
 
-            .emoji {
-                display: inline-block;
-                background: rgb(226 232 240 / 1);
-                padding: 0.3rem .6rem;
-                border-radius: 0.4rem;
-                font-size: 1.5rem;
-            }
+        .card .emoji {
+            display: inline-block;
+            background: rgb(226 232 240 / 1);
+            padding: 0.3rem .6rem;
+            border-radius: 0.4rem;
+            font-size: 1.5rem;
+        }
 
-            .title {
-                font-weight: bold;
-            }
+        .card .title {
+            font-weight: bold;
+        }
 
-            ul {
-                margin: 0;
-                padding-left: 1.2rem;
-            }
+        .card ul {
+            margin: 0;
+            padding-left: 1.2rem;
         }
 
         a {
@@ -213,8 +231,8 @@
 
         .sky {
             margin-top: 3rem;
-            border-top: 1px solid #cecece;
-            border-bottom: 1px solid #cecece;
+            border-top: 1px solid var(--color-line);
+            border-bottom: 1px solid var(--color-line);
             padding: 1.2rem 0;
             display: flex;
             justify-content: center;
@@ -223,6 +241,7 @@
             gap: 0.4rem;
             width: 100%;
             margin-bottom: 1rem;
+            color: var(--color-card-text);
         }
 
         .w {
@@ -246,7 +265,7 @@
             margin: 1rem 0 2rem 0;
             width: 100%;
             padding-top: 1.5rem;
-            border-top: 1px solid #c4c4c4;
+            border-top: 1px solid var(--color-line);
             justify-content: center;
             align-items: center;
         }
@@ -279,6 +298,7 @@
         });
       }
     </script>
+
     <script>
       function nav(url) {
         window.location.href = url;
@@ -323,6 +343,19 @@
         toggleEl('#xhsDialog', true)
         toggleEl('#qqDialog', true)
       }
+
+      window.onload = () => {
+        function getSystemTheme() {
+          if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            return 'dark';
+          } else if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+            return 'light';
+          }
+          return 'light'; // 默认浅色模式
+        }
+
+        document.documentElement.className = getSystemTheme()
+      }
     </script>
 </head>
 <body>
@@ -336,7 +369,6 @@
             <div class="base-button" onclick="nav('/words')">单词练习</div>
             <div class="base-button" onclick="nav('/articles')">文章练习</div>
         </div>
-
         <div class="sky">
             <a href="https://skywork.ai/p/GrXQb4" style="width: 40%;" target="_blank">
                 <img src="https://typewords.cc/skywork-ai.png"

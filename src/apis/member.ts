@@ -28,3 +28,11 @@ export type LevelBenefits = {
 export function levelBenefits(params) {
   return http<LevelBenefits>('member/levelBenefits', null, params, 'get')
 }
+
+export function orderCreate(params) {
+  return http<{orderNo:string}>('/member/orderCreate', params, null, 'post')
+}
+
+export function orderStatus(params) {
+  return http('/member/orderStatus', null, params, 'get')
+}
