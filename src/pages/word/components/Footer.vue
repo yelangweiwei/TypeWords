@@ -208,6 +208,7 @@ const progress = $computed(() => {
     padding: .2rem var(--space) calc(.4rem + env(safe-area-inset-bottom, 0px)) var(--space);
     border: 1px solid var(--color-item-border);
     box-shadow: var(--shadow);
+    z-index: 10;
 
     .stat {
       margin-top: .5rem;

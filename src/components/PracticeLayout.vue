@@ -68,7 +68,7 @@ defineProps<{
     }
     
     .footer-wrap {
-      bottom: calc(-4rem + env(safe-area-inset-bottom, 0px));
+      bottom: calc(-10rem + env(safe-area-inset-bottom, 0px));
     }
   }
   
