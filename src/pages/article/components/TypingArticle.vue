@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { inject, onMounted, onUnmounted, watch } from "vue"
-import { Article, ArticleWord, PracticeArticleWordType, Sentence, ShortcutKey, Word } from "@/types/types.ts";
-import { useBaseStore } from "@/stores/base.ts";
-import { useSettingStore } from "@/stores/setting.ts";
-import { usePlayBeep, usePlayCorrect, usePlayKeyboardAudio } from "@/hooks/sound.ts";
-import { emitter, EventKey, useEvents } from "@/utils/eventBus.ts";
-import { _dateFormat, _nextTick, isMobile, msToHourMinute, total } from "@/utils";
+import {inject, onMounted, onUnmounted, watch} from "vue"
+import {Article, ArticleWord, PracticeArticleWordType, Sentence, ShortcutKey, Word} from "@/types/types.ts";
+import {useBaseStore} from "@/stores/base.ts";
+import {useSettingStore} from "@/stores/setting.ts";
+import {usePlayBeep, usePlayCorrect, usePlayKeyboardAudio} from "@/hooks/sound.ts";
+import {emitter, EventKey, useEvents} from "@/utils/eventBus.ts";
+import {_dateFormat, _nextTick, isMobile, msToHourMinute, total} from "@/utils";
 import '@imengyu/vue3-context-menu/lib/vue3-context-menu.css'
 import ContextMenu from '@imengyu/vue3-context-menu'
 import BaseButton from "@/components/BaseButton.vue";
 import QuestionForm from "@/pages/article/components/QuestionForm.vue";
-import { getDefaultArticle, getDefaultWord } from "@/types/func.ts";
+import {getDefaultArticle, getDefaultWord} from "@/types/func.ts";
 import Toast from '@/components/base/toast/Toast.ts'
 import TypingWord from "@/pages/article/components/TypingWord.vue";
 import Space from "@/pages/article/components/Space.vue";
-import { useWordOptions } from "@/hooks/dict.ts";
+import {useWordOptions} from "@/hooks/dict.ts";
 import nlp from "compromise/three";
-import { nanoid } from "nanoid";
-import { usePracticeStore } from "@/stores/practice.ts";
-import { PracticeSaveArticleKey } from "@/config/env.ts";
-import { retry } from "ali-oss/lib/common/utils/retry";
+import {nanoid} from "nanoid";
+import {usePracticeStore} from "@/stores/practice.ts";
+import {PracticeSaveArticleKey} from "@/config/env.ts";
+import {retry} from "ali-oss/lib/common/utils/retry";
 
 interface IProps {
   article: Article,
@@ -152,13 +152,8 @@ function init() {
     typeArticleRef?.scrollTo({top: 0, behavior: "smooth"})
   }
   _nextTick(() => {
-    if (isNameWord()) {
-      next()
-    }
-    //如果是首句首词
-    if (sectionIndex === 0 && sentenceIndex === 0 && wordIndex === 0 && stringIndex === 0) {
-      emit('play', {sentence: props.article.sections[sectionIndex][sentenceIndex], handle: false})
-    }
+    emit('play', {sentence: props.article.sections[sectionIndex][sentenceIndex], handle: false})
+    if (isNameWord()) next()
   })
   checkTranslateLocation().then(() => checkCursorPosition())
   focusMobileInput()
@@ -262,9 +257,9 @@ function handleMobileBeforeInput(event: InputEvent) {
 
 const normalize = (s: string) => s.toLowerCase().trim()
 const namePatterns = $computed(() => {
-  return (props.article?.nameList ?? []).map(normalize).filter(Boolean).map(s => s.split(/\s+/).filter(Boolean)).flat().concat([
+  return Array.from(new Set((props.article?.nameList ?? []).map(normalize).filter(Boolean).map(s => s.split(/\s+/).filter(Boolean)).flat().concat([
     'Mr', 'Mrs', 'Ms', 'Dr', 'Miss',
-  ].map(normalize))
+  ].map(normalize))))
 })
 
 const isNameWord = () => {
@@ -306,18 +301,13 @@ function nextSentence() {
       isEnd = true
       emit('complete')
     } else {
-      if (isNameWord()) {
-        next()
-      } else {
-        emit('play', {sentence: props.article.sections[sectionIndex][0], handle: false})
-      }
+      if (isNameWord()) next()
+      emit('play', {sentence: props.article.sections[sectionIndex][0], handle: false})
     }
   } else {
-    if (isNameWord()) {
-      next()
-    } else {
-      emit('play', {sentence: currentSection[sentenceIndex], handle: false})
-    }
+    if (isNameWord()) next()
+    emit('play', {sentence: currentSection[sentenceIndex], handle: false})
+
   }
   lock = false
   focusMobileInput()
@@ -336,6 +326,10 @@ const next = () => {
   if (wordIndex + 1 < currentSentence.words.length) {
     wordIndex++;
     currentWord = currentSentence.words[wordIndex]
+    //这里把未输入的单词补全，因为删除时会用到input
+    currentSentence.words.slice(0, wordIndex).forEach((word, i) => {
+      word.input = word.input + word.word.slice(word.input?.length ?? 0)
+    })
     if ([PracticeArticleWordType.Symbol, PracticeArticleWordType.Number].includes(currentWord.type) && settingStore.ignoreSymbol) {
       next()
     } else if (isNameWord()) {
@@ -644,16 +638,16 @@ const currentPractice = inject('currentPractice', [])
 <template>
   <div class="typing-article" ref="typeArticleRef" @click="focusMobileInput">
     <input
-        v-if="isMob"
-        ref="mobileInputRef"
-        class="mobile-input"
-        type="text"
-        inputmode="text"
-        autocomplete="off"
-        autocorrect="off"
-        autocapitalize="none"
-        @beforeinput="handleMobileBeforeInput"
-        @input="handleMobileInput"
+      v-if="isMob"
+      ref="mobileInputRef"
+      class="mobile-input"
+      type="text"
+      inputmode="text"
+      autocomplete="off"
+      autocorrect="off"
+      autocapitalize="none"
+      @beforeinput="handleMobileBeforeInput"
+      @input="handleMobileInput"
     />
     <header class="mb-4">
       <div class="title word"><span class="font-family text-3xl">{{
@@ -672,10 +666,10 @@ const currentPractice = inject('currentPractice', [])
                 <span class="sentence"
                       v-for="(sentence,indexJ) in section">
                   <span
-                      v-for="(word,indexW) in sentence.words"
-                      @contextmenu="e=>onContextMenu(e,sentence,indexI,indexJ,indexW)"
-                      class="word"
-                      :class="[(sectionIndex>indexI
+                    v-for="(word,indexW) in sentence.words"
+                    @contextmenu="e=>onContextMenu(e,sentence,indexI,indexJ,indexW)"
+                    class="word"
+                    :class="[(sectionIndex>indexI
                         ?'wrote':
                         (sectionIndex>=indexI &&sentenceIndex>indexJ)
                         ?'wrote' :
@@ -702,16 +696,16 @@ const currentPractice = inject('currentPractice', [])
                       <span class="border-bottom" v-if="settingStore.dictation"></span>
                     </span>
                    <Space
-                       v-if="word.nextSpace"
-                       class="word-end"
-                       :is-wrong="false"
-                       :is-wait="isCurrent(indexI,indexJ,indexW) && isSpace"
-                       :is-shake="isCurrent(indexI,indexJ,indexW) && isSpace && wrong !== ''"
+                     v-if="word.nextSpace"
+                     class="word-end"
+                     :is-wrong="false"
+                     :is-wait="isCurrent(indexI,indexJ,indexW) && isSpace"
+                     :is-shake="isCurrent(indexI,indexJ,indexW) && isSpace && wrong !== ''"
                    />
                   </span>
                   <span
-                      class="sentence-translate-mobile"
-                      v-if="isMob && settingStore.translate && sentence.translate">
+                    class="sentence-translate-mobile"
+                    v-if="isMob && settingStore.translate && sentence.translate">
                     {{ sentence.translate }}
                   </span>
                 </span>
@@ -741,11 +735,11 @@ const currentPractice = inject('currentPractice', [])
 
     <div class="options flex justify-center" v-if="isEnd">
       <BaseButton
-          @click="emit('replay')">重新练习
+        @click="emit('replay')">重新练习
       </BaseButton>
       <BaseButton
-          v-if="store.currentBook.lastLearnIndex < store.currentBook.articles.length - 1"
-          @click="emit('next')">下一篇
+        v-if="store.currentBook.lastLearnIndex < store.currentBook.articles.length - 1"
+        @click="emit('next')">下一篇
       </BaseButton>
     </div>
 

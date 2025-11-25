@@ -330,7 +330,7 @@ function setStartTime(val: Sentence, i: number, j: number) {
     val.audioPosition[0] = Number(Number(audioRef.currentTime).toFixed(2))
   }
   if (val.audioPosition[0] > val.audioPosition[1] && val.audioPosition[1] !== 0) {
-    val.audioPosition[1] = val.audioPosition[0]
+    val.audioPosition[1] = 0
   }
 }
 
